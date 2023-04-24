@@ -39,13 +39,8 @@ def chronicles_connector() -> PiezoChroniclesConnector:
 
 
 @pytest.fixture()
-def mock_stations_api_success(mocker: MockerFixture) -> Mock:
+def mock_stations_api_success() -> Mock:
     """Generate mock response for a successful api call.
-
-    Parameters
-    ----------
-    mocker : MockerFixture
-        Mocker fixture.
 
     Returns
     -------
@@ -113,19 +108,12 @@ def mock_stations_api_success(mocker: MockerFixture) -> Mock:
     }
     response.status_code = 200
     response.raise_for_status.return_value = None
-    mock = mocker.patch("requests.get")
-    mock.return_value = response
     return response
 
 
 @pytest.fixture()
-def mock_chronicles_api_success(mocker: MockerFixture) -> Mock:
+def mock_chronicles_api_success() -> Mock:
     """Generate mock response for a successful api call.
-
-    Parameters
-    ----------
-    mocker : MockerFixture
-        Mocker fixture.
 
     Returns
     -------
@@ -179,13 +167,11 @@ def mock_chronicles_api_success(mocker: MockerFixture) -> Mock:
     }
     response.status_code = 200
     response.raise_for_status.return_value = None
-    mock = mocker.patch("requests.get")
-    mock.return_value = response
     return response
 
 
 @pytest.fixture()
-def mock_api_fail(mocker: MockerFixture) -> Mock:
+def mock_api_fail() -> Mock:
     """Generate mock response for a failed api call.
 
     Parameters
@@ -203,8 +189,6 @@ def mock_api_fail(mocker: MockerFixture) -> Mock:
     response.status_code = 400
     response.raise_for_status.side_effect = HTTPError("Connexion refused.")
     response.raise_for_status.return_value = None
-    mock = mocker.patch("requests.get")
-    mock.return_value = response
     return response
 
 
@@ -236,7 +220,7 @@ def test_hubeau_connector_url(
 
 
 @pytest.mark.parametrize(
-    ("connector_fixture", "mock_api_success"),
+    ("connector_fixture", "response"),
     [
         ("stations_connector", "mock_stations_api_success"),
         ("chronicles_connector", "mock_chronicles_api_success"),
@@ -244,8 +228,9 @@ def test_hubeau_connector_url(
 )
 def test_retrieve_success(
     connector_fixture: str,
-    mock_api_success: str,
+    response: str,
     request: pytest.FixtureRequest,
+    mocker: MockerFixture,
 ) -> None:
     """Test hubeau connectors for a successful api response.
 
@@ -253,13 +238,16 @@ def test_retrieve_success(
     ----------
     connector_fixture : str
         Name of the connector fixture.
-    mock_api_success : str
+    response : str
         Name of the successful mocked api response.
     request : pytest.FixtureRequest
-        Reqiest for a fixture.
+        Request for a fixture.
+    mocker: MockerFixture
+        Mocker for patching.
     """
     connector: HubeauConnector = request.getfixturevalue(connector_fixture)
-    request.getfixturevalue(mock_api_success)
+    mocker_response: Mock = request.getfixturevalue(response)
+    mocker.patch("requests.get", return_value=mocker_response)
     params: dict = {}
     output_df = connector.retrieve(params)
     columns_keep = connector.columns_to_keep
@@ -270,13 +258,14 @@ def test_retrieve_success(
 
 
 @pytest.mark.parametrize(
-    ("connector_fixture"),
+    "connector_fixture",
     ["stations_connector", "chronicles_connector"],
 )
 def test_retrieve_fail(
     connector_fixture: str,
     mock_api_fail: Mock,
     request: pytest.FixtureRequest,
+    mocker: MockerFixture,
 ) -> None:
     """Test hubeau connectors for a failed api response.
 
@@ -288,11 +277,11 @@ def test_retrieve_fail(
         Mocked failed API request.
     request : pytest.FixtureRequest
         Request for a fixture.
+    mocker: MockerFixture
+        Mocker for patching.
     """
     connector: HubeauConnector = request.getfixturevalue(connector_fixture)
+    mocker.patch("requests.get", return_value=mock_api_fail)
     params: dict = {}
-    error = mock_api_fail.raise_for_status.side_effect
-    with pytest.raises(HTTPError) as exc_info:
-        _ = connector.retrieve(params)
-    assert type(error) == type(exc_info.value)  # noqa: E721
-    assert error.args == exc_info.value.args
+    output_df = connector.retrieve(params)
+    assert output_df.empty
