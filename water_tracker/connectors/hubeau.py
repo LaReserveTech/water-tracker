@@ -53,7 +53,6 @@ class HubeauConnector(BaseConnector, ABC):
         str
             Url
         """
-        ...
 
     def _format_ouput(
         self,
@@ -77,9 +76,10 @@ class HubeauConnector(BaseConnector, ABC):
         # Converting 'dates' columns to datetime
         for column in self.date_columns:
             if column in response_df.columns:
-                response_df.loc[:, column] = pd.to_datetime(
-                    response_df.loc[:, column],
-                )
+                date_col = response_df.pop(column)
+                response_df[column] = pd.to_datetime(date_col)
+            else:
+                response_df[column] = pd.NaT
         return response_df
 
     def retrieve(self, params: dict) -> pd.DataFrame:

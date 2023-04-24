@@ -89,7 +89,6 @@ class BaseERA5Connector(BaseConnector, ABC):
         str
             Variable name.
         """
-        ...
 
     def _format_ouput(
         self,

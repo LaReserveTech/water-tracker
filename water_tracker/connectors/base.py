@@ -22,7 +22,6 @@ class BaseConnector(ABC):
         pd.DataFrame
             Formatted output.
         """
-        ...
 
     @property
     @abstractmethod
@@ -34,7 +33,6 @@ class BaseConnector(ABC):
         list[str]
             Columns to keep
         """
-        ...
 
     @property
     @abstractmethod
@@ -46,7 +44,6 @@ class BaseConnector(ABC):
         list[str]
             Dates columns.
         """
-        ...
 
     @abstractmethod
     def _format_ouput(self, output: pd.DataFrame) -> pd.DataFrame:
@@ -62,4 +59,3 @@ class BaseConnector(ABC):
         pd.DataFrame
             Formatted DataFrame
         """
-        ...
