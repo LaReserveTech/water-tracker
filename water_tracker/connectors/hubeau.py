@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 import requests
 import streamlit as st
+from requests import HTTPError
 
 from water_tracker.connectors.base import BaseConnector
 
@@ -29,14 +30,19 @@ def retrieve_data_next_page(
         Result DataFrame, next page url ("" if last)
     """
     response = requests.get(url, params)
-    response.raise_for_status()
-    response_json = response.json()
-    # Checking whether the page is the last or not
-    if "next" not in response_json.keys() or response_json["next"] is None:
+    try:
+        response.raise_for_status()
+    except HTTPError:
         next_page = ""
+        response_df = pd.DataFrame()
     else:
-        next_page = response_json["next"]
-    response_df = pd.DataFrame.from_dict(response_json["data"])
+        response_json = response.json()
+        # Checking whether the page is the last or not
+        if "next" not in response_json.keys() or response_json["next"] is None:
+            next_page = ""
+        else:
+            next_page = response_json["next"]
+        response_df = pd.DataFrame.from_dict(response_json["data"])
     return response_df, next_page
 
 
