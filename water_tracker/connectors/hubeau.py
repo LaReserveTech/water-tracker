@@ -79,7 +79,7 @@ class HubeauConnector(BaseConnector, ABC):
         while next_page:
             output, next_page = retrieve_data_next_page(next_page, params)
             # Filtering data using defined columns
-            formatted_df = self._format_ouput(output)
+            formatted_df = self.format_ouput(output)
             dfs_all_pages.append(formatted_df)
         return pd.concat(dfs_all_pages)
 

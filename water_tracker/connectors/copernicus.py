@@ -163,7 +163,7 @@ class BaseERA5Connector(BaseConnector, ABC):
             # Close the temporary file
             file.close()
             Path.unlink(Path(file.name))
-        return self._format_ouput(output)
+        return self.format_ouput(output)
 
 
 class PrecipitationsERA5Connector(BaseERA5Connector):
