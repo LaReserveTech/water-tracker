@@ -3,17 +3,15 @@
 import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import cdsapi
 import pandas as pd
 import xarray as xr
+from cdsapi.api import Client
 from dotenv import load_dotenv
 
 from water_tracker.connectors.base import BaseConnector
 
-if TYPE_CHECKING:
-    from cdsapi.api import Client
 # Load the environment variables
 load_dotenv()
 
@@ -71,7 +69,7 @@ class BaseERA5Connector(BaseConnector, ABC):
         , by default True
     """
 
-    client: "Client" = cdsapi.Client(verify=True)
+    client: Client = cdsapi.Client(verify=True)
     name: str = "reanalysis-era5-land"
     product_type: str = "reanalysis"
     file_format: str = "netcdf"
@@ -153,17 +151,23 @@ class BaseERA5Connector(BaseConnector, ABC):
             dir=".",
             suffix=".nc",
         ) as file:
-            self.client.retrieve(
-                name=self.name,
-                request=params,
-                target=file.name,
-            )
-            # Loads data from the target file
-            output = xr.open_dataset(file.name).to_dataframe().reset_index()
+            try:
+                self.client.retrieve(
+                    name=self.name,
+                    request=params,
+                    target=file.name,
+                )
+            except Exception:  # noqa: BLE001
+                raw_df = pd.DataFrame()
+            else:
+                # Loads data from the target file
+                dataset = xr.open_dataset(file.name)
+                dataset_df = dataset.to_dataframe()
+                raw_df = dataset_df.reset_index()
             # Close the temporary file
             file.close()
             Path.unlink(Path(file.name))
-        return self.format_ouput(output)
+        return self.format_ouput(raw_df)
 
 
 class PrecipitationsERA5Connector(BaseERA5Connector):
