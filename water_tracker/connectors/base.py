@@ -62,13 +62,13 @@ class BaseConnector(ABC):
             Formatted dataframe.
         """
         response_df = output.copy()
-        if self.columns_to_keep:
-            response_df = response_df.reindex(columns=self.columns_to_keep)
         # Converting 'dates' columns to datetime
         for column in self.date_columns:
             if column in response_df.columns:
                 date_col = response_df.pop(column)
                 response_df[column] = pd.to_datetime(date_col)
-            else:
+            elif column in self.columns_to_keep:
                 response_df[column] = pd.NaT
+        if self.columns_to_keep:
+            response_df = response_df.reindex(columns=self.columns_to_keep)
         return response_df
