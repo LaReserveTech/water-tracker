@@ -3,6 +3,7 @@
 from unittest.mock import Mock
 from urllib.parse import urlsplit
 
+import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 from requests.exceptions import HTTPError
@@ -11,6 +12,7 @@ from water_tracker.connectors.hubeau import (
     HubeauConnector,
     PiezoChroniclesConnector,
     PiezoStationsConnector,
+    retrieve_data_next_page,
 )
 
 
@@ -38,22 +40,27 @@ def chronicles_connector() -> PiezoChroniclesConnector:
     return PiezoChroniclesConnector()
 
 
-@pytest.fixture()
-def mock_stations_api_success() -> Mock:
-    """Generate mock response for a successful api call.
+def mock_stations_api_success(has_next: bool = False) -> Mock:
+    """Generate mock response for a successful api call on stations.
+
+    Parameters
+    ----------
+    has_next: bool
+        Whether there is a next page or not.
 
     Returns
     -------
     Mock
         Mock successful response.
     """
+    next_page = "next_page" if has_next else None
     response = Mock()
     response.json.return_value = {
         "count": 2,
         "first": "first_url",
         "last": None,
         "prev": None,
-        "next": None,
+        "next": next_page,
         "api_version": "1.4.1",
         "data": [
             {
@@ -112,21 +119,50 @@ def mock_stations_api_success() -> Mock:
 
 
 @pytest.fixture()
-def mock_chronicles_api_success() -> Mock:
-    """Generate mock response for a successful api call.
+def stations_api_success_with_next() -> Mock:
+    """Generate a mock response with a next page for stations API.
+
+    Returns
+    -------
+    Mock
+        Mocker.
+    """
+    return mock_stations_api_success(True)
+
+
+@pytest.fixture()
+def stations_api_success_without_next() -> Mock:
+    """Generate a mock response without a next page for stations API.
+
+    Returns
+    -------
+    Mock
+        Mocker.
+    """
+    return mock_stations_api_success(False)
+
+
+def mock_chronicles_api_success(has_next: bool = False) -> Mock:
+    """Generate mock response for a successful api call on chronicles.
+
+    Parameters
+    ----------
+    has_next: bool
+        Whether there is a next page or not.
 
     Returns
     -------
     Mock
         Mock successful response.
     """
+    next_page = "next_page" if has_next else None
     response = Mock()
     response.json.return_value = {
         "count": 2,
         "first": "url_first",
         "last": "url_last",
         "prev": None,
-        "next": None,
+        "next": next_page,
         "api_version": "1.4.1",
         "data": [
             {
@@ -168,6 +204,30 @@ def mock_chronicles_api_success() -> Mock:
     response.status_code = 200
     response.raise_for_status.return_value = None
     return response
+
+
+@pytest.fixture()
+def chronicles_api_success_with_next() -> Mock:
+    """Generate a mock response with a next page for chronicles API.
+
+    Returns
+    -------
+    Mock
+        Mocker.
+    """
+    return mock_chronicles_api_success(True)
+
+
+@pytest.fixture()
+def chronicles_api_success_without_next() -> Mock:
+    """Generate a mock response with a next page for chronicles API.
+
+    Returns
+    -------
+    Mock
+        Mocker.
+    """
+    return mock_chronicles_api_success(False)
 
 
 @pytest.fixture()
@@ -222,11 +282,11 @@ def test_hubeau_connector_url(
 @pytest.mark.parametrize(
     ("connector_fixture", "response"),
     [
-        ("stations_connector", "mock_stations_api_success"),
-        ("chronicles_connector", "mock_chronicles_api_success"),
+        ("stations_connector", "stations_api_success_without_next"),
+        ("chronicles_connector", "chronicles_api_success_without_next"),
     ],
 )
-def test_retrieve_success(
+def test_connector_retrieve_success(
     connector_fixture: str,
     response: str,
     request: pytest.FixtureRequest,
@@ -261,7 +321,7 @@ def test_retrieve_success(
     "connector_fixture",
     ["stations_connector", "chronicles_connector"],
 )
-def test_retrieve_fail(
+def test_connector_retrieve_fail(
     connector_fixture: str,
     mock_api_fail: Mock,
     request: pytest.FixtureRequest,
@@ -284,4 +344,91 @@ def test_retrieve_fail(
     mocker.patch("requests.get", return_value=mock_api_fail)
     params: dict = {}
     output_df = connector.retrieve(params)
+    assert output_df.empty
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        "chronicles_api_success_without_next",
+        "stations_api_success_without_next",
+    ],
+)
+def test_retrieve_success_without_next(
+    response: str,
+    mocker: MockerFixture,
+    request: pytest.FixtureRequest,
+) -> None:
+    """Test retrieve_data_next_page when there's no next page.
+
+    Parameters
+    ----------
+    response : str
+        Name of the API response fixture.
+    mocker : MockerFixture
+        Mocker for patching.
+    request : pytest.FixtureRequest
+        Request for a fixture.
+    """
+    api_response: Mock = request.getfixturevalue(response)
+    mocker.patch("requests.get", return_value=api_response)
+    url = "https://example.com/"
+    params: dict = {}
+    output_df, next_page = retrieve_data_next_page(url=url, params=params)
+    assert not next_page
+    assert output_df.equals(pd.DataFrame(api_response.json()["data"]))
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        "chronicles_api_success_with_next",
+        "stations_api_success_with_next",
+    ],
+)
+def test_retrieve_success_with_next(
+    response: str,
+    mocker: MockerFixture,
+    request: pytest.FixtureRequest,
+) -> None:
+    """Test retrieve_data_next_page when there is a next page.
+
+    Parameters
+    ----------
+    response : str
+        Name of the API response fixture.
+    mocker : MockerFixture
+        Mocker for patching.
+    request : pytest.FixtureRequest
+        Request for a fixture.
+    """
+    api_response: Mock = request.getfixturevalue(response)
+    mocker.patch("requests.get", return_value=api_response)
+    url = "https://example.com/"
+    params: dict = {}
+    output_df, next_page = retrieve_data_next_page(url=url, params=params)
+    assert next_page == api_response.json()["next"]
+    assert output_df.equals(pd.DataFrame(api_response.json()["data"]))
+
+
+def test_retrieve_fail(
+    mock_api_fail: Mock,
+    mocker: MockerFixture,
+) -> None:
+    """Test retrieve_data_next_page when the api call fails.
+
+    Parameters
+    ----------
+    response : str
+        Name of the API response fixture.
+    mocker : MockerFixture
+        Mocker for patching.
+    request : pytest.FixtureRequest
+        Request for a fixture.
+    """
+    mocker.patch("requests.get", return_value=mock_api_fail)
+    url = "https://example.com/"
+    params: dict = {}
+    output_df, next_page = retrieve_data_next_page(url=url, params=params)
+    assert not next_page
     assert output_df.empty
