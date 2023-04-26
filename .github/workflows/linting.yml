@@ -1,36 +1,16 @@
-name: Tests and Linting
-on: [ push, pull_request ]
+name: pre-commit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: "3.10"
-      - name: Get full python version
-        id: full-python-version
-        run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
-      - name: Install poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          python get-poetry.py -y
-          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-      - name: Configure poetry
-        run: poetry config virtualenvs.in-project true
-      - name: Set up cache
-        uses: actions/cache@v1
-        id: cache
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
-      - name: Ensure cache is healthy
-        if: steps.cache.outputs.cache-hit == 'true'
-        run: poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
-      - name: Install Dependencies
-        run: poetry install
-      - name: Test
-        run: poetry run pytest
-      - name: Pre-commit
-        run: poetry run pre-commit run --all-files
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
+    - uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: run --all-files
