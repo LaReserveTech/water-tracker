@@ -1,5 +1,6 @@
 """Copernicus Connectors."""
 
+import os
 import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -14,7 +15,6 @@ from water_tracker.connectors.base import BaseConnector
 
 # Load the environment variables
 load_dotenv()
-
 
 default_years: list[int] = [2023]
 default_months: list[int] = [1]
@@ -69,7 +69,11 @@ class BaseERA5Connector(BaseConnector, ABC):
         , by default True
     """
 
-    client: Client = cdsapi.Client(verify=True)
+    client: Client = cdsapi.Client(
+        verify=True,
+        url=os.environ.get("CDSAPI_URL"),
+        key=os.environ.get("CDSAPI_KEY"),
+    )
     name: str = "reanalysis-era5-land"
     product_type: str = "reanalysis"
     file_format: str = "netcdf"
