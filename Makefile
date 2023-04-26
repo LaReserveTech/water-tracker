@@ -55,7 +55,7 @@ install-dev:
 	${MAKE} -s poetry-install-dev
 	${MAKE} -s hooks-install
 
-.PHONY: tests
-tests:
+.PHONY: test
+test:
 	${MAKE} -s install-dev
 	${BIN}pytest
