@@ -23,4 +23,3 @@ jobs:
           pre-commit install
       - name: Run pre-commit
         run: SKIP=no-commit-to-branch pre-commit run --all-files
-
