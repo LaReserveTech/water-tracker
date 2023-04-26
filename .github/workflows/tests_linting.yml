@@ -41,7 +41,7 @@ jobs:
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
       - name: Install dependencies
         run: |
-          python -m poetry install --only main
+          python -m poetry install --with dev
       - name: Run tests
         run: |
           python -m poetry run python -m pytest
