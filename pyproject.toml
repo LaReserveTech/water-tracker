@@ -116,3 +116,4 @@ source = ["water_tracker"]
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 100

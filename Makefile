@@ -16,6 +16,7 @@ clean:
 
 ${VIRTUAL_ENV}:
 	${PYTHON} -m venv ${VIRTUAL_ENV}
+	${BIN}python -m pip install --upgrade pip
 	${BIN}python -m pip install poetry
 
 .PHONY: poetry-install
