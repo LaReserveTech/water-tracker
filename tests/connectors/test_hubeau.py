@@ -7,7 +7,6 @@ import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 from requests.exceptions import HTTPError
-
 from water_tracker.connectors.hubeau import (
     HubeauConnector,
     PiezoChroniclesConnector,

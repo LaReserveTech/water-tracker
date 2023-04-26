@@ -2,7 +2,6 @@
 
 import pandas as pd
 import pytest
-
 from water_tracker.connectors.hubeau import PiezoChroniclesConnector
 
 

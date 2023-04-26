@@ -4,7 +4,6 @@ import pandas as pd
 import pytest
 import xarray as xr
 from pytest_mock import MockerFixture
-
 from water_tracker.connectors.copernicus import (
     PrecipitationsERA5Connector,
     default_area,

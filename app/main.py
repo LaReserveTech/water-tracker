@@ -4,7 +4,6 @@ import datetime as dt
 
 import plotly.graph_objects as go
 import streamlit as st
-
 from water_tracker import connectors, display
 
 default_start_date = "2022-01-01"
