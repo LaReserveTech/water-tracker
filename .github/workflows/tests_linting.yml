@@ -35,3 +35,6 @@ jobs:
           pip install pytest pytest-cov
       - name: Run Pytest
         run: pytest --cov-report=html
+        env:
+          CDSAPI_URL: https://cds.climate.copernicus.eu/api/v2
+          CDSAPI_KEY: 123456:1234a12a-1234-123a-a1a1-abcabcabcabc
