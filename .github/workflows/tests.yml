@@ -1,4 +1,4 @@
-ame: Test and Linting
+name: Test and Linting
 
 on:
   pull_request:
