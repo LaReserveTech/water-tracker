@@ -16,6 +16,17 @@ from water_tracker.connectors.base import BaseConnector
 load_dotenv()
 
 
+def foo() -> int:
+    """_summary_.
+
+    Returns
+    -------
+    int
+        _description_
+    """
+    return 1
+
+
 default_years: list[int] = [2023]
 default_months: list[int] = [1]
 default_days: list[int] = [1]

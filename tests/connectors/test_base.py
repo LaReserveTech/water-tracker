@@ -160,8 +160,3 @@ def test_format_output_date_and_values_empty(
     assert (output_df["column1"] == input_df["column1"]).all()
     assert (output_df["column2"] == input_df["column2"]).all()
     assert output_df.dtypes["date1"] == "datetime64[ns]"
-
-
-def test_dummy() -> None:
-    """Test random thing."""
-    assert True
