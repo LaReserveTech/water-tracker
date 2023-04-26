@@ -1,6 +1,7 @@
 PYTHON = $(shell command -v python 2> /dev/null)
 VIRTUAL_ENV = .venv
 HOOKS = .git/hooks
+DOTENV = .env
 ifeq ($(OS), Windows_NT)
 	BIN = ${VIRTUAL_ENV}/Scripts/
 else
@@ -14,6 +15,9 @@ clean:
 	rm -rf ${VIRTUAL_ENV}
 	rm -rf ${HOOKS}
 
+${DOTENV}:
+	cp ${DOTENV}.template ${DOTENV}
+
 ${VIRTUAL_ENV}:
 	${PYTHON} -m venv ${VIRTUAL_ENV}
 	${BIN}python -m pip install --upgrade pip
@@ -25,6 +29,7 @@ poetry-install: pyproject.toml poetry.lock
 
 .PHONY: install
 install:
+	${MAKE} -s ${DOTENV}
 	${MAKE} -s ${VIRTUAL_ENV}
 	${MAKE} -s poetry-install
 
@@ -45,6 +50,7 @@ hooks-install: .pre-commit-config.yaml
 
 .PHONY: install
 install-dev:
+	${MAKE} -s ${DOTENV}
 	${MAKE} -s ${VIRTUAL_ENV}
 	${MAKE} -s poetry-install-dev
 	${MAKE} -s hooks-install
