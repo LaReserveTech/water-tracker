@@ -42,6 +42,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m poetry install --with dev
-      - name: Run tests
+      - name: Run pytest
         run: |
           python -m poetry run python -m pytest
+        env:
+          CDSAPI_RC: .env
+          CDSAPI_URL: https://cds.climate.copernicus.eu/api/v2
+          CDSAPI_KEY: 123456:1234a12a-1234-123a-a1a1-abcabcabcabc
