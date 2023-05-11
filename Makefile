@@ -19,8 +19,13 @@ clean:
 ${DOTENV}:
 	cp ${DOTENV}.template ${DOTENV}
 
+# Poetry targets
+
 check-poetry:
-	@if [ -z $(GLOBAL_POETRY) ]; then echo "Poetry is not installed on your global python. Please install in order to use these rules."; exit 2 ;fi
+	@if [ -z $(GLOBAL_POETRY) ]; then echo "Poetry is not installed on your global python. Use 'make install-poetry' to install Poetry on your global python."; exit 2 ;fi
+
+install-poetry:
+	curl -sSL https://install.python-poetry.org | ${GLOBAL_PYTHON} -
 
 ${VIRTUAL_ENV}:
 	${GLOBAL_PYTHON} -m venv ${VIRTUAL_ENV}
