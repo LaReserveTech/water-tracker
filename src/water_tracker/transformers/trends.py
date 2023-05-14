@@ -16,73 +16,239 @@ class ExistingColumnNameError(Exception):
         )
 
 
-class AverageTrendEvaluation:
-    """Average Evaluation / Relevance."""
+class ThresholdError(Exception):
+    """Not in any Threshold."""
 
-    nb_years_out_ref: int = 5
-    min_trends_year_nb: int = 3
-    evaluation_thresholds: dict[str, dict[str, float]] = {
-        "bad": {"min": 3, "max": 5},
-        "correct": {"min": 5, "max": 10},
-        "good": {"min": 10, "max": 15},
-        "very good": {"min": 15, "max": 25},
-        "excellent": {"min": 25, "max": np.nan},
-    }
+    def __init__(self, *args: object) -> None:
+        super().__init__(
+            "The given trend does not fit in any of the provided thresholds.",
+            *args,
+        )
+
+
+class TrendProperties:
+    """Properties of the Average Trend.
+
+    Parameters
+    ----------
+    measure_start : dt.datetime
+        First date ofthe station's measures.
+    measure_end : dt.datetime
+        Last date of the station's measures.
+    years_not_in_trend : int, optional
+        Number of years to not use to compute the trend.
+        For example, if measure_end is 2023/01/01,
+        and years_not_in_trend equals 5,
+        then no data after 2018/01/01 will be considered for the trend.
+        , by default 5
+    min_trend_length_year : int, optional
+        Minimal number of year to use for the trend., by default 3
+    """
 
     def __init__(
         self,
         measure_start: dt.datetime,
         measure_end: dt.datetime,
-        point_number: int,
+        years_not_in_trend: int = 5,
+        min_trend_length_year: int = 3,
     ) -> None:
-        self.measure_start = measure_start
-        self.measure_end = measure_end
-        self.point_number = point_number
+        self.years_not_in_trend = years_not_in_trend
+        self.min_trend_length_year = min_trend_length_year
+        self.has_enough_data = self._has_enough_data(
+            measure_start=measure_start,
+            measure_end=measure_end,
+        )
+        if not self.has_enough_data:
+            self._start = None
+            self._end = None
+        else:
+            self._start, self._end = self._get_trend_boundaries(
+                measure_start=measure_start,
+                measure_end=measure_end,
+            )
 
     @property
-    def estimated_coverage(self) -> float:
-        """Mean estimated coverage.
+    def trend_data_start(self) -> dt.datetime | None:
+        """Starting date of the data to use for the trend.
 
         Returns
         -------
-        float
-            Point of measure / days in measure period
+        dt.datetime | None
+            Starting date of the data to use for the trend.
+            None if there is not enough data to compute a trend.
         """
-        measure_span = self.measure_end - self.measure_start
-        max_measuring_points = measure_span.days
-        return self.point_number / max_measuring_points
+        return self._start
 
     @property
-    def has_enough_data(self) -> bool:
-        """Indication if the stations has enough history to compute trend.
+    def trend_data_end(self) -> dt.datetime | None:
+        """Ending date of the data to use for the trend.
+
+        Returns
+        -------
+        dt.datetime | None
+            Ending date of the data to use for the trend.
+            None if there is not enough data to compute a trend.
+        """
+        return self._end
+
+    def _has_enough_data(
+        self,
+        measure_start: dt.datetime,
+        measure_end: dt.datetime,
+    ) -> bool:
+        """Indicate if the stations has enough history to compute trend.
 
         Returns
         -------
         bool
             True if there's enough data to compute a trend.
         """
-        measure_period = (self.measure_end - self.measure_start).days
+        measure_period = (measure_end - measure_start).days
         measure_years = measure_period / 365.25
-        minimum_years_nb = self.nb_years_out_ref + self.min_trends_year_nb
+        minimum_years_nb = self.years_not_in_trend + self.min_trend_length_year
         return measure_years >= minimum_years_nb
 
-    def get_trend_boundaries(
+    @property
+    def nb_years_history(self) -> float:
+        """Number of year used for the trend.
+
+        Returns
+        -------
+        float
+            Number of years used for the trend.
+        """
+        if self.trend_data_start is None or self.trend_data_end is None:
+            return 0
+        return (self.trend_data_end - self.trend_data_start).days / 365.25
+
+    def _get_trend_boundaries(
         self,
-    ) -> tuple[dt.datetime | None, dt.datetime | None]:
+        measure_start: dt.datetime,
+        measure_end: dt.datetime,
+    ) -> tuple[dt.datetime, dt.datetime]:
         """Compute time boundaries for the trend data.
 
         Returns
         -------
-        tuple[dt.datetime | None, dt.datetime | None]
+        tuple[dt.datetime , dt.datetime ]
             First date for trend, last date for trend.
         """
-        if not self.has_enough_data:
-            return None, None
-
-        days_out_ref = math.ceil(365.25 * self.nb_years_out_ref)
-        ref_start_date = self.measure_start
-        ref_end_date = self.measure_end - dt.timedelta(days=days_out_ref)
+        days_out_ref = math.ceil(365.25 * self.years_not_in_trend)
+        ref_start_date = measure_start
+        ref_end_date = measure_end - dt.timedelta(days=days_out_ref)
         return ref_start_date, ref_end_date
+
+
+class TrendThreshold:
+    """Threshold to use to evaluate the relevancy of a Trend.
+
+    Parameters
+    ----------
+    return_value : str
+        Value to return if the threshold is satisfied.
+    minimum_value : float
+        Minimal value of the threshold (included).
+    maximum_value : float
+        Maximal value for the threshold (excluded).
+    """
+
+    def __init__(
+        self,
+        return_value: str,
+        minimum_value: float,
+        maximum_value: float,
+    ) -> None:
+        self.return_value = return_value
+        self.minimum_value = minimum_value
+        self.maximum_value = maximum_value
+
+    def verifies_minimum(self, value: float) -> bool:
+        """Verify if a value is above the minimal value of the threshold.
+
+        Parameters
+        ----------
+        value : float
+            Value to test.
+
+        Returns
+        -------
+        bool
+            value >= threshold min
+        """
+        if np.isnan(self.minimum_value):
+            return True
+        return value >= self.minimum_value
+
+    def verifies_maximum(self, value: float) -> bool:
+        """Verify if a value is above the maximal value of the threshold.
+
+        Parameters
+        ----------
+        value : float
+            Value to test.
+
+        Returns
+        -------
+        bool
+            value < threshold max
+        """
+        if np.isnan(self.maximum_value):
+            return True
+        return value < self.maximum_value
+
+    def is_in_threshold(self, trend: TrendProperties) -> bool:
+        """Verify if a trend respects this threshold.
+
+        Parameters
+        ----------
+        trend : TrendProperties
+            The Trend to evaluate.
+
+        Returns
+        -------
+        bool
+            True if threshold min <= Trend years number < threshold max
+        """
+        years_history = trend.nb_years_history
+        min_cond = self.verifies_minimum(years_history)
+        max_cond = self.verifies_maximum(years_history)
+        return min_cond and max_cond
+
+
+class TrendEvaluation:
+    """Trend Evaluation over given thresholds.
+
+    Parameters
+    ----------
+    *thresholds : TrendThreshold
+        Thresholds to consider in the evaluation.
+    """
+
+    def __init__(self, *thresholds: TrendThreshold) -> None:
+        self.thresholds = thresholds
+
+    def evaluate(self, trend: TrendProperties) -> str:
+        """Evaluate a trend over all threshold.
+
+        Parameters
+        ----------
+        trend : TrendProperties
+            The Trend to evaluate.
+
+        Returns
+        -------
+        str
+            Return value of the first satisfied threshold.
+
+        Raises
+        ------
+        ThresholdError
+            If the Trend doesn't satisfy any of the thresholds.
+        """
+        for threshold in self.thresholds:
+            if threshold.is_in_threshold(trend):
+                return threshold.return_value
+        raise ThresholdError
 
 
 class AverageTrend:
