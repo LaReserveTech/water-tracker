@@ -257,9 +257,6 @@ class AverageTrend:
     day_of_year_column: str = "day_of_year"
     mean_values_column: str = "mean_value"
 
-    def __init__(self) -> None:
-        pass
-
     def add_days_of_year_column(
         self,
         dates_df: pd.DataFrame,
