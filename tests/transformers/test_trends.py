@@ -5,6 +5,8 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 from water_tracker.transformers.trends import (
+    ThresholdError,
+    TrendEvaluation,
     TrendProperties,
     TrendThreshold,
 )
@@ -117,3 +119,83 @@ def test_is_in_threshold(
         maximum_value=maximum_value,
     )
     assert threshold.is_in_threshold(trend_prop_mock) == expected
+
+
+# Trend Evaluation Test
+@pytest.mark.parametrize(
+    ("threshold1", "threshold2", "nb_years", "expected"),
+    [
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t2", 3, 5), 2.2, "t1"),
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t2", 3, 5), 0, "t1"),
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t2", 0, 5), 2.2, "t1"),
+        (TrendThreshold("t2", 0, 5), TrendThreshold("t1", 0, 3), 2.2, "t2"),
+        (
+            TrendThreshold("t1", np.nan, 5),
+            TrendThreshold("t2", 3, 5),
+            2.2,
+            "t1",
+        ),
+    ],
+)
+def test_evaluate_threshold(
+    threshold1: TrendThreshold,
+    threshold2: TrendThreshold,
+    nb_years: float,
+    expected: bool,
+) -> None:
+    """Test the TrendEvaluation.evaluate method.
+
+    Parameters
+    ----------
+    threshold1 : TrendThreshold
+        First threshold.
+    threshold2 : TrendThreshold
+        Second Threshold.
+    nb_years : float
+        Number of years for the TrendProperties.
+    expected : bool
+        Exepected result.
+    """
+    trend_prop_mock = Mock(TrendProperties)
+    trend_prop_mock.nb_years_history = nb_years
+    trend_eval = TrendEvaluation(
+        threshold1,
+        threshold2,
+    )
+    assert trend_eval.evaluate(trend_prop_mock) == expected
+
+
+@pytest.mark.parametrize(
+    ("threshold1", "threshold2", "nb_years"),
+    [
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t2", 5, 10), 4.2),
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t2", 3, 5), -1),
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t1", 3, 5), 5),
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t1", 3, 5), 7),
+        (TrendThreshold("t1", 0, 3), TrendThreshold("t2", 3, 5), np.nan),
+    ],
+)
+def test_evaluate_error(
+    threshold1: TrendThreshold,
+    threshold2: TrendThreshold,
+    nb_years: float,
+) -> None:
+    """Test the error for TrendEvaluation if number of year not in thresholds.
+
+    Parameters
+    ----------
+    threshold1 : TrendThreshold
+        First threshold.
+    threshold2 : TrendThreshold
+        Second Threshold.
+    nb_years : float
+        Number of years for the TrendProperties.
+    """
+    trend_prop_mock = Mock(TrendProperties)
+    trend_prop_mock.nb_years_history = nb_years
+    trend_eval = TrendEvaluation(
+        threshold1,
+        threshold2,
+    )
+    with pytest.raises(ThresholdError):
+        trend_eval.evaluate(trend_prop_mock)
