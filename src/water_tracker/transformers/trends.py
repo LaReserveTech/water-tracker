@@ -31,9 +31,9 @@ class TrendProperties:
 
     Parameters
     ----------
-    measure_start : dt.datetime
+    measure_start : dt.date
         First date ofthe station's measures.
-    measure_end : dt.datetime
+    measure_end : dt.date
         Last date of the station's measures.
     years_not_in_trend : int, optional
         Number of years to not use to compute the trend.
@@ -47,8 +47,8 @@ class TrendProperties:
 
     def __init__(
         self,
-        measure_start: dt.datetime,
-        measure_end: dt.datetime,
+        measure_start: dt.date,
+        measure_end: dt.date,
         years_not_in_trend: int = 5,
         min_trend_length_year: int = 3,
     ) -> None:
@@ -68,24 +68,24 @@ class TrendProperties:
             )
 
     @property
-    def trend_data_start(self) -> dt.datetime | None:
+    def trend_data_start(self) -> dt.date | None:
         """Starting date of the data to use for the trend.
 
         Returns
         -------
-        dt.datetime | None
+        dt.date | None
             Starting date of the data to use for the trend.
             None if there is not enough data to compute a trend.
         """
         return self._start
 
     @property
-    def trend_data_end(self) -> dt.datetime | None:
+    def trend_data_end(self) -> dt.date | None:
         """Ending date of the data to use for the trend.
 
         Returns
         -------
-        dt.datetime | None
+        dt.date | None
             Ending date of the data to use for the trend.
             None if there is not enough data to compute a trend.
         """
@@ -93,8 +93,8 @@ class TrendProperties:
 
     def _has_enough_data(
         self,
-        measure_start: dt.datetime,
-        measure_end: dt.datetime,
+        measure_start: dt.date,
+        measure_end: dt.date,
     ) -> bool:
         """Indicate if the stations has enough history to compute trend.
 
@@ -123,14 +123,14 @@ class TrendProperties:
 
     def _get_trend_boundaries(
         self,
-        measure_start: dt.datetime,
-        measure_end: dt.datetime,
-    ) -> tuple[dt.datetime, dt.datetime]:
+        measure_start: dt.date,
+        measure_end: dt.date,
+    ) -> tuple[dt.date, dt.date]:
         """Compute time boundaries for the trend data.
 
         Returns
         -------
-        tuple[dt.datetime , dt.datetime ]
+        tuple[dt.date , dt.date ]
             First date for trend, last date for trend.
         """
         days_out_ref = math.ceil(365.25 * self.years_not_in_trend)
