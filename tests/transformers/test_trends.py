@@ -1,5 +1,6 @@
 """Tests for Trends transformers."""
 
+import datetime as dt
 from unittest.mock import Mock
 
 import numpy as np
@@ -10,6 +11,171 @@ from water_tracker.transformers.trends import (
     TrendProperties,
     TrendThreshold,
 )
+
+
+# Trend Properties Test
+
+
+@pytest.mark.parametrize(
+    ("measure_start", "measure_end", "not_in_trend", "min_trend", "expected"),
+    [
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 1, 1, True),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 5, 5, False),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 0, 4, True),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 4, 0, True),
+        (dt.date(2020, 1, 1), dt.date(2015, 1, 1), 1, 1, False),
+    ],
+)
+def test_has_enough_data(
+    measure_start: dt.datetime,
+    measure_end: dt.datetime,
+    not_in_trend: int,
+    min_trend: int,
+    expected: bool,
+) -> None:
+    """Test the TrendProperties.has_enough_data value.
+
+    Parameters
+    ----------
+    measure_start : dt.datetime
+        First date of measure.
+    measure_end : dt.datetime
+        LAst date of measure.
+    not_in_trend : int
+        Number of years not in the trend.
+    min_trend : int
+        Minimal number of years for the trend.
+    expected : bool
+        Expected result.
+    """
+    trend = TrendProperties(
+        measure_start=measure_start,
+        measure_end=measure_end,
+        years_not_in_trend=not_in_trend,
+        min_trend_length_year=min_trend,
+    )
+    assert trend.has_enough_data == expected
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "not_in_trend", "min_trend", "expected_end"),
+    [
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 1, 1, dt.date(2019, 1, 1)),
+        (dt.date(2010, 1, 1), dt.date(2020, 1, 1), 4, 1, dt.date(2016, 1, 1)),
+    ],
+)
+def test_trend_boundaries(
+    start: dt.date,
+    end: dt.date,
+    not_in_trend: int,
+    min_trend: int,
+    expected_end: dt.date,
+) -> None:
+    """Test the boundaries date for the trend.
+
+    Parameters
+    ----------
+    start : dt.date
+        Mesaure starting date.
+    end : dt.date
+        Measure Ending date.
+    not_in_trend : int
+        Number of years not in the trend.
+    min_trend : int
+        Minimal number of years in the trend.
+    expected_end : dt.date
+        Exepected value for the trend ending date.
+    """
+    trend_prop = TrendProperties(
+        measure_start=start,
+        measure_end=end,
+        years_not_in_trend=not_in_trend,
+        min_trend_length_year=min_trend,
+    )
+    assert trend_prop.trend_data_start == start
+    assert trend_prop.trend_data_end == expected_end
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "not_in_trend", "min_trend"),
+    [
+        (dt.date(2015, 1, 1), dt.date(2014, 1, 1), 1, 1),
+        (dt.date(2015, 1, 1), dt.date(2016, 1, 1), 4, 1),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 4, 3),
+    ],
+)
+def test_trend_none_boundaries(
+    start: dt.date,
+    end: dt.date,
+    not_in_trend: int,
+    min_trend: int,
+) -> None:
+    """Test for None trend boundaries date.
+
+    Parameters
+    ----------
+    start : dt.date
+        Measure starting date.
+    end : dt.date
+        Measure ending date.
+    not_in_trend : int
+        Number of years not in the trend.
+    min_trend : int
+        Minimal number of years in the trend.
+    """
+    trend_prop = TrendProperties(
+        measure_start=start,
+        measure_end=end,
+        years_not_in_trend=not_in_trend,
+        min_trend_length_year=min_trend,
+    )
+    assert trend_prop.trend_data_start is None
+    assert trend_prop.trend_data_end is None
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "not_in_trend", "min_trend", "expected"),
+    [
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 1, 1, 4),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 3, 1, 2),
+        (dt.date(2017, 1, 1), dt.date(2020, 1, 1), 1, 1, 2),
+        (dt.date(2020, 1, 1), dt.date(2015, 1, 1), 1, 1, 0),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 1, 10, 0),
+        (dt.date(2015, 1, 1), dt.date(2020, 1, 1), 10, 1, 0),
+    ],
+)
+def test_nb_years_history(
+    start: dt.date,
+    end: dt.date,
+    not_in_trend: int,
+    min_trend: int,
+    expected: int,
+) -> None:
+    """Test for the number of years.
+
+    Parameters
+    ----------
+    start : dt.date
+        Measure starting date.
+    end : dt.date
+        Measure ending date.
+    not_in_trend : int
+        Number of years not in the trend.
+    min_trend : int
+        Minimal number of years in the trend.
+    expected : int
+        Expected number of years.
+    """
+    trend_prop = TrendProperties(
+        measure_start=start,
+        measure_end=end,
+        years_not_in_trend=not_in_trend,
+        min_trend_length_year=min_trend,
+    )
+    assert trend_prop.nb_years_history == expected
+
+
+# Trend Threshold Test
 
 
 @pytest.mark.parametrize(
