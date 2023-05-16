@@ -1,6 +1,5 @@
 """Compute trends to have some comparison basis."""
 import datetime as dt
-import math
 
 import numpy as np
 import pandas as pd
@@ -133,9 +132,9 @@ class TrendProperties:
         tuple[dt.date , dt.date ]
             First date for trend, last date for trend.
         """
-        days_out_ref = math.ceil(365.25 * self.years_not_in_trend)
+        year_offset = pd.DateOffset(years=self.years_not_in_trend)
         ref_start_date = measure_start
-        ref_end_date = measure_end - dt.timedelta(days=days_out_ref)
+        ref_end_date = (measure_end - year_offset).date()
         return ref_start_date, ref_end_date
 
 
