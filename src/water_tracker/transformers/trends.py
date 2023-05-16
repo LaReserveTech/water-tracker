@@ -108,7 +108,7 @@ class TrendProperties:
         return measure_years >= minimum_years_nb
 
     @property
-    def nb_years_history(self) -> float:
+    def nb_years_history(self) -> int:
         """Number of year used for the trend.
 
         Returns
@@ -116,9 +116,9 @@ class TrendProperties:
         float
             Number of years used for the trend.
         """
-        if self.trend_data_start is None or self.trend_data_end is None:
+        if self._start is None or self._end is None:
             return 0
-        return (self.trend_data_end - self.trend_data_start).days / 365.25
+        return round((self._end - self._start).days / 365.25)
 
     def _get_trend_boundaries(
         self,
