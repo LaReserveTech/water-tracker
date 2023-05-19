@@ -4,8 +4,11 @@ import datetime as dt
 from unittest.mock import Mock
 
 import numpy as np
+import pandas as pd
 import pytest
 from water_tracker.transformers.trends import (
+    AverageTrend,
+    ExistingColumnNameError,
     ThresholdError,
     TrendEvaluation,
     TrendProperties,
@@ -365,3 +368,120 @@ def test_evaluate_error(
     )
     with pytest.raises(ThresholdError):
         trend_eval.evaluate(trend_prop_mock)
+
+
+# AverageTrend Test
+
+
+@pytest.mark.parametrize(
+    ("remove", "expected"),
+    [
+        (
+            False,
+            pd.DataFrame(
+                {
+                    "column1": [1, 2, 3, 4],
+                    "date1": ["20220101", "20200703", "20000101", "20250401"],
+                    AverageTrend.day_of_year_column: [1, 185, 1, 91],
+                },
+            ),
+        ),
+        (
+            True,
+            pd.DataFrame(
+                {
+                    "column1": [1, 2, 3, 4],
+                    AverageTrend.day_of_year_column: [1, 185, 1, 91],
+                },
+            ),
+        ),
+    ],
+)
+def test_add_days_of_year_column(
+    remove: bool,
+    expected: pd.DataFrame,
+) -> None:
+    """Test AverageTrend's day of year computation.
+
+    Parameters
+    ----------
+    remove : bool
+        Whether to remove the date column or not.
+    expected : pd.DataFrame
+        Expected output for the method.
+    """
+    trend = AverageTrend()
+    dates_df = pd.DataFrame(
+        {
+            "column1": [1, 2, 3, 4],
+            "date1": ["20220101", "20200703", "20000101", "20250401"],
+        },
+    )
+    output_df = trend.add_days_of_year_column(dates_df, "date1", remove)
+    assert output_df.equals(expected)
+
+
+def test_add_days_of_year_column_error() -> None:
+    """Test error raising for add_days_of_year_column method."""
+    trend = AverageTrend()
+    dates_df = pd.DataFrame(
+        {
+            "column1": [1, 2, 3, 4],
+            "date1": ["20220101", "20200703", "20000101", "20250401"],
+            trend.day_of_year_column: [1, 2, 3, 4],
+        },
+    )
+    with pytest.raises(ExistingColumnNameError):
+        trend.add_days_of_year_column(dates_df, "date1", False)
+
+
+def test_compute_reference_values() -> None:
+    """Test average values computation."""
+    trend = AverageTrend()
+    history = pd.DataFrame(
+        {
+            trend.day_of_year_column: [1, 1, 2, 3, 4, 4, 4],
+            "values": [1, 2, 3, 4, 5, 6, 7],
+            "column1": [1, 1, 1, 1, 1, 1, 1],
+            "column2": ["a", "a", "a", "a", "a", "a", "a"],
+        },
+    )
+    expected_df = pd.DataFrame(
+        {
+            trend.day_of_year_column: [1, 2, 3, 4],
+            "column1": [1.0, 1.0, 1.0, 1.0],
+            trend.mean_values_column: [1.5, 3, 4, 6],
+        },
+    )
+    output_df = trend.compute_reference_values(history, "values")
+    assert output_df.equals(expected_df)
+
+
+def test_transform() -> None:
+    """Test transform method."""
+    trend = AverageTrend()
+    history = pd.DataFrame(
+        {
+            "d1": ["20100101", "20110101", "20100105", "20100616", "20100105"],
+            "values": [1, 2, 3, 4, 5],
+            "column1": [1, 1, 1, 1, 1],
+        },
+    )
+    present = pd.DataFrame(
+        {
+            "column1": [1, 2, 3, 4],
+            "d1": ["20220101", "20200105", "20000101", "20250401"],
+            "values": [1, 3, 5, 7],
+        },
+    )
+    expected = pd.DataFrame(
+        {
+            "column1": [1, 2, 3, 4],
+            "d1": ["20220101", "20200105", "20000101", "20250401"],
+            "values": [1, 3, 5, 7],
+            AverageTrend.day_of_year_column: [1, 5, 1, 91],
+            AverageTrend.mean_values_column: [1.5, 4, 1.5, np.nan],
+        },
+    )
+    output_df = trend.transform(history, present, "d1", "values")
+    assert output_df.equals(expected)
