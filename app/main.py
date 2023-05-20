@@ -27,10 +27,10 @@ stations = stations_connector.retrieve(stations_params)
 has_no_start_measure_date = stations["date_debut_mesure"].isna()
 has_no_end_measure_date = stations["date_fin_mesure"].isna()
 has_no_measure_date = has_no_start_measure_date & has_no_end_measure_date
-stations = stations.drop(index=stations[has_no_measure_date].index)
+valid_stations = stations.drop(index=stations[has_no_measure_date].index)
 # Replace unknown city names
-unknown_name = stations["nom_commune"].isna()
-stations.loc[unknown_name, "nom_commune"] = "Commune Inconnue"
+unknown_name = valid_stations["nom_commune"].isna()
+valid_stations.loc[unknown_name, "nom_commune"] = "Commune Inconnue"
 
 
 def format_func(row_id: int) -> str:
@@ -46,19 +46,19 @@ def format_func(row_id: int) -> str:
     str
         'bss_code (city name)'
     """
-    bss_code = stations.loc[row_id, "code_bss"]
-    city_name = stations.loc[row_id, "nom_commune"]
+    bss_code = valid_stations.loc[row_id, "code_bss"]
+    city_name = valid_stations.loc[row_id, "nom_commune"]
     return f"{bss_code} ({city_name})"
 
 
 bss_code_id = st.selectbox(
     label="Sélection du code bss de la station",
-    options=stations.index,
+    options=valid_stations.index,
     format_func=format_func,
 )
-bss_code = stations.loc[bss_code_id, "code_bss"]
-min_date = stations.loc[bss_code_id, "date_debut_mesure"]
-max_date = stations.loc[bss_code_id, "date_fin_mesure"]
+bss_code = valid_stations.loc[bss_code_id, "code_bss"]
+min_date = valid_stations.loc[bss_code_id, "date_debut_mesure"]
+max_date = valid_stations.loc[bss_code_id, "date_fin_mesure"]
 col1, col2 = st.columns(2)
 mesure_date_start = col1.date_input(
     label="Date de début de mesure",
