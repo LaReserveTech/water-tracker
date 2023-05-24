@@ -3,9 +3,9 @@
 import datetime as dt
 
 import numpy as np
-import plotly.graph_objects as go
 import streamlit as st
-from water_tracker import connectors, display
+from water_tracker import connectors
+from water_tracker.display import chronicles
 from water_tracker.transformers import trends
 
 default_start_date = "2022-01-01"
@@ -113,71 +113,56 @@ chronicles_params = {
     "date_debut_mesure": mesure_date_start,
     "date_fin_mesure": mesure_date_end,
 }
-chronicles = chronicle_connector.retrieve(chronicles_params)
-if not chronicles.empty:
-    scatter = go.Scatter(
-        x=chronicles["date_mesure"],
-        y=chronicles["niveau_nappe_eau"],
-        name="Mesures Actuelles",
-        marker={"color": "blue"},
-    )
-    layout = go.Layout(
-        title={"text": f"Relevé Piézométrique de la station : {bss_code}"},
-        xaxis={"title": {"text": "Dates"}},
-        yaxis={"title": {"text": "Niveau Nappe"}},
-    )
-    figure = go.Figure(
-        data=[scatter],
-        layout=layout,
-    )
-    if not trend_props.has_enough_data:
-        st.error("Données insuffisantes pour calculer une tendance.")
-        display_tend = False
-    else:
-        eval_result = trend_eval.evaluate(trend=trend_props)
-        if eval_result == insufficient.return_value:
-            st.error("Données insuffisantes pour calculer une tendance.")
-            display_tend = False
-        elif eval_result == bad.return_value:
-            st.warning(
-                "La tendance ne peut pas être considérée "
-                "fiable du fait du manque de données.",
-            )
-            display_tend = st.checkbox("Afficher la tendance.", value=False)
-        else:
-            st.success(
-                f"Tendance calculée sur {trend_props.nb_years_history} "
-                f"année{'s' if trend_props.nb_years_history > 1 else ''}.",
-            )
-            display_tend = st.checkbox("Afficher la tendance.", value=True)
-        if display_tend:
-            trend = trends.AverageTrend()
-
-            history_params = {
-                "code_bss": bss_code,
-                "date_debut_mesure": trend_props.trend_data_start,
-                "date_fin_mesure": trend_props.trend_data_end,
-            }
-            history = chronicle_connector.retrieve(history_params)
-            joined = trend.transform(
-                historical_df=history,
-                present_df=chronicles,
-                dates_column="date_mesure",
-                values_column="niveau_nappe_eau",
-            )
-            figure.add_trace(
-                go.Scatter(
-                    x=joined["date_mesure"],
-                    y=joined[trend.mean_values_column],
-                    name="Mesures Moyennes",
-                    marker={"color": "purple"},
-                ),
-            )
+chronicles_df = chronicle_connector.retrieve(chronicles_params)
+display_trend = False
+if not trend_props.has_enough_data:
+    st.error("Données insuffisantes pour calculer une tendance.")
 else:
-    figure = display.make_error_figure(
-        message="Pas de données pour ce piézomètre.",
-        title=f"Relevé Piézométrique de la station : {bss_code}",
-        xtitle="Dates",
-        ytitle="Niveau Nappe",
+    eval_result = trend_eval.evaluate(trend=trend_props)
+    if eval_result == insufficient.return_value:
+        st.error("Données insuffisantes pour calculer une tendance.")
+    elif eval_result == bad.return_value:
+        st.warning(
+            "La tendance ne peut pas être considérée "
+            "fiable du fait du manque de données.",
+        )
+        display_trend = st.checkbox("Afficher la tendance.", value=False)
+    else:
+        st.success(
+            f"Tendance calculée sur {trend_props.nb_years_history} "
+            f"année{'s' if trend_props.nb_years_history > 1 else ''}.",
+        )
+        display_trend = st.checkbox("Afficher la tendance.", value=True)
+
+chronicles_display = chronicles.ChroniclesFigure(
+    container=st,
+    x_column="date_mesure",
+    y_column="niveau_nappe_eau",
+    title=f"Relevé Piézométrique de la station : {bss_code}",
+)
+chronicles_display.add_present_trace(
+    chronicles_df=chronicles_df,
+    name="Mesures Actuelles",
+    marker={"color": "blue"},
+)
+if display_trend:
+    trend = trends.AverageTrend()
+    history_params = {
+        "code_bss": bss_code,
+        "date_debut_mesure": trend_props.trend_data_start,
+        "date_fin_mesure": trend_props.trend_data_end,
+    }
+    history = chronicle_connector.retrieve(history_params)
+    trend_df = trend.transform(
+        historical_df=history,
+        present_df=chronicles_df,
+        dates_column="date_mesure",
+        values_column="niveau_nappe_eau",
     )
-st.plotly_chart(figure, use_container_width=True)
+    chronicles_display.add_trend_trace(
+        trend_df,
+        trend.mean_values_column,
+        name="Mesures Moyennes",
+        marker={"color": "purple"},
+    )
+chronicles_display.display(use_container_width=True)
