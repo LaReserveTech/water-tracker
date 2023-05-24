@@ -326,7 +326,7 @@ class AverageTrend:
         # group by day
         day_group = history_days_of_year.groupby(self.day_of_year_column)
         # compute average value over the years
-        return day_group.mean().reset_index()
+        return day_group.mean(numeric_only=True).reset_index()
 
     def transform(
         self,
