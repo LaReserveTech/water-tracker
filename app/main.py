@@ -163,6 +163,6 @@ if display_trend:
         trend_df,
         trend.mean_values_column,
         name="Mesures Moyennes",
-        marker={"color": "purple"},
+        marker={"color": "black"},
     )
 chronicles_display.display(use_container_width=True)
