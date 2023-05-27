@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Generic, TypeVar
 
 import geopandas as gpd
+import pandas as pd
 from shapely import Point
 
 from water_tracker import BASE_DIR
@@ -128,3 +129,26 @@ class DefaultDepartement(DefaultInput[str]):
             return self.default_value
         first_containing = self.departments_geojson[contains_point].iloc[0]
         return first_containing[self.geojson_code_field]
+
+
+class DefaultStation(DefaultInput[int]):
+    """Default input for Station Selection.
+
+    Parameters
+    ----------
+    stations_df : pd.DataFrame
+        DataFrame with all stations.
+    """
+
+    def __init__(self, stations_df: pd.DataFrame) -> None:
+        self._stations_index = stations_df.index
+
+    @property
+    def stations_index(self) -> pd.Index:
+        """Indexes of the station DataFrame."""
+        return self._stations_index
+
+    @property
+    def value(self) -> int:
+        """Value to use as default input."""
+        return self.stations_index[0]

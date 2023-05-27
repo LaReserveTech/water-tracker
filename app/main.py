@@ -38,30 +38,15 @@ valid_stations = stations.drop(index=stations[has_no_measure_date].index)
 unknown_name = valid_stations["nom_commune"].isna()
 valid_stations.loc[unknown_name, "nom_commune"] = "Commune Inconnue"
 
-
-def format_func(row_id: int) -> str:
-    """Format the bss code display name.
-
-    Parameters
-    ----------
-    row_id : int
-        Index of the row to display the code of.
-
-    Returns
-    -------
-    str
-        'bss_code (city name)'
-    """
-    bss_code = valid_stations.loc[row_id, "code_bss"]
-    city_name = valid_stations.loc[row_id, "nom_commune"]
-    return f"{bss_code} ({city_name})"
-
-
-bss_code_id = st.selectbox(
-    label="Sélection du code bss de la station",
-    options=valid_stations.index,
-    format_func=format_func,
+station_input = inputs.StationInput(
+    label="Sélection du code BSS de la station",
+    stations_df=valid_stations,
+    default_input=defaults.DefaultStation(
+        stations_df=valid_stations,
+    ),
 )
+bss_code_id = station_input.build(st.container())
+
 bss_code = valid_stations.loc[bss_code_id, "code_bss"]
 min_date = valid_stations.loc[bss_code_id, "date_debut_mesure"]
 max_date = valid_stations.loc[bss_code_id, "date_fin_mesure"]
