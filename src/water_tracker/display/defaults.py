@@ -58,6 +58,11 @@ class DefaultDepartement(DefaultInput[str]):
         self.geojson_code_field = geojson_code_field
         self.query_params = query_params
 
+    @property
+    def default_value(self) -> str:
+        """Default value."""
+        return self._default_dept_nb
+
     @cached_property
     def departments_geojson(self) -> gpd.GeoDataFrame:
         """Geodataframe with departments polygons."""
@@ -79,7 +84,7 @@ class DefaultDepartement(DefaultInput[str]):
         if self._valid_query_params:
             point = self.read_query_params()
             return self.get_point_department(point)
-        return self._default_dept_nb
+        return self.default_value
 
     def check_params(self) -> bool:
         """Check if the query parameters have latitude and longitude fields.
@@ -89,8 +94,8 @@ class DefaultDepartement(DefaultInput[str]):
         bool
             True if the query_parameters has fields for longitude and latitude.
         """
-        is_lat_in_key = self.lat_param in self._query
-        is_lon_in_key = self.lon_param in self._query
+        is_lat_in_key = self.lat_param in self.query_params
+        is_lon_in_key = self.lon_param in self.query_params
         return is_lat_in_key and is_lon_in_key
 
     def read_query_params(self) -> Point:
@@ -101,8 +106,8 @@ class DefaultDepartement(DefaultInput[str]):
         Point
             Point corresponding to the query parameters.
         """
-        lat = float(self._query[self.lat_param][0])
-        lon = float(self._query[self.lon_param][0])
+        lat = float(self.query_params[self.lat_param][0])
+        lon = float(self.query_params[self.lon_param][0])
         return Point(lon, lat)
 
     def get_point_department(self, point: Point) -> str:
@@ -120,6 +125,6 @@ class DefaultDepartement(DefaultInput[str]):
         """
         contains_point = self.departments_geojson.contains(point)
         if not contains_point.any():
-            return self._default_dept_nb
+            return self.default_value
         first_containing = self.departments_geojson[contains_point].iloc[0]
         return first_containing[self.geojson_code_field]
