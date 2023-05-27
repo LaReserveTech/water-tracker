@@ -5,7 +5,7 @@ import datetime as dt
 import numpy as np
 import streamlit as st
 from water_tracker import connectors
-from water_tracker.display import chronicles
+from water_tracker.display import chronicles, defaults, inputs
 from water_tracker.transformers import trends
 
 default_start_date = "2022-01-01"
@@ -13,12 +13,16 @@ default_end_date = "2022-12-31"
 st.set_page_config(page_title="Water-Tracker", layout="wide")
 st.title("Water-Tracker")
 
-departements = [*list(range(1, 20)), "2A", "2B", *list(range(21, 96))]
-
-code_departement = st.selectbox(
-    label="Sélection du département",
-    options=[str(dpt).zfill(2) for dpt in departements],
+dept_input = inputs.DepartmentInput(
+    "Sélection du Département",
+    defaults.DefaultDepartement(
+        st.experimental_get_query_params(),
+        "longitude",
+        "latitude",
+    ),
 )
+code_departement = dept_input.build(st.container())
+
 stations_connector = connectors.PiezoStationsConnector()
 stations_params = {
     "code_departement": code_departement,
