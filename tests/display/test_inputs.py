@@ -2,26 +2,52 @@
 
 from unittest.mock import Mock
 
+import pandas as pd
 import pytest
-from water_tracker.display.defaults import DefaultDepartement
-from water_tracker.display.inputs import DepartmentInput
+from water_tracker.display.inputs import DepartmentInput, StationInput
 
 
 @pytest.fixture()
-def default_dep() -> Mock:
-    """Create default department object Mock.
+def dep_input() -> DepartmentInput:
+    """Create department input object.
 
     Returns
     -------
     Mock
-        Default department Mock.
+        Department Input.
     """
     dep_default = Mock()
     dep_default.value = "01"
-    return dep_default
+    return DepartmentInput(label="test", default_input=dep_default)
 
 
-def test_options(default_dep: DefaultDepartement) -> None:
+@pytest.fixture()
+def station_input() -> StationInput:
+    """Create Station input object.
+
+    Returns
+    -------
+    StationInput
+        Station Input.
+    """
+    station_default = Mock()
+    station_default.value = "code0"
+    stations_df = pd.DataFrame(
+        {
+            "bss": ["code0", "code1"],
+            "city": ["city0", "city1"],
+        },
+    )
+    return StationInput(
+        label="test",
+        stations_df=stations_df,
+        default_input=station_default,
+        bss_field_name="bss",
+        city_field_name="city",
+    )
+
+
+def test_dep_options(dep_input: DepartmentInput) -> None:
     """Test DefaultDepartment.options.
 
     Only checks that 96 departments are in options and
@@ -32,8 +58,29 @@ def test_options(default_dep: DefaultDepartement) -> None:
     default_dep : DefaultDepartement
         Defqult department Mock.
     """
-    dep_input = DepartmentInput(label="test", default_input=default_dep)
     depts_len = 96
     assert len(dep_input.options) == depts_len
     assert "2A" in dep_input.options
     assert "2B" in dep_input.options
+
+
+def test_station_options(station_input: StationInput) -> None:
+    """Test SatationInput.options.
+
+    Parameters
+    ----------
+    station_input : StationInput
+        Station Input.
+    """
+    assert station_input.options == station_input.stations.index.to_list()
+
+
+def test_station_format(station_input: StationInput) -> None:
+    """Test StationInput.format_func.
+
+    Parameters
+    ----------
+    station_input : StationInput
+        Station Input.
+    """
+    assert station_input.format_func(0) == "code0 (city0)"
