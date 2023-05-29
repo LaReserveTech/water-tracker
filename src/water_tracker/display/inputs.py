@@ -128,9 +128,18 @@ class StationInput(BaseInput[DefaultStation]):
         label: str,
         stations_df: pd.DataFrame,
         default_input: DefaultStation,
+        bss_field_name: str = "code_bss",
+        city_field_name: str = "nom_commune",
     ) -> None:
         super().__init__(label, default_input)
         self._stations = stations_df
+        self._bss_field_name = bss_field_name
+        self._city_field_name = city_field_name
+
+    @property
+    def stations(self) -> pd.DataFrame:
+        """Stations used for the input."""
+        return self._stations
 
     @property
     def options(self) -> list[int]:
@@ -150,8 +159,8 @@ class StationInput(BaseInput[DefaultStation]):
         str
             Formatted string to display.
         """
-        bss_code = self._stations.loc[row_index, "code_bss"]
-        city_name = self._stations.loc[row_index, "nom_commune"]
+        bss_code = self._stations.loc[row_index, self._bss_field_name]
+        city_name = self._stations.loc[row_index, self._city_field_name]
         return f"{bss_code} ({city_name})"
 
     def build(self, container: "DeltaGenerator") -> int | None:

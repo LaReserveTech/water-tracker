@@ -44,6 +44,8 @@ station_input = inputs.StationInput(
     default_input=defaults.DefaultStation(
         stations_df=valid_stations,
     ),
+    bss_field_name="code_bss",
+    city_field_name="nom_commune",
 )
 bss_code_id = station_input.build(st.container())
 
