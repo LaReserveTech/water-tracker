@@ -1,10 +1,18 @@
 """Test for the defaults input values objects."""
 
+import datetime as dt
+
 import geopandas as gpd
+import pandas as pd
 import pytest
 from pytest_mock import MockerFixture
 from shapely import Point, Polygon
-from water_tracker.display.defaults import DefaultDepartement
+from water_tracker.display.defaults import (
+    DefaultDepartement,
+    DefaultMaxDate,
+    DefaultMinDate,
+    DefaultStation,
+)
 
 
 @pytest.fixture()
@@ -207,3 +215,70 @@ def test_dep_value(
         geojson_code_field="code",
     )
     assert dept_default.value == expected_code
+
+
+def test_station_value() -> None:
+    """Test DefaultStation.value."""
+    stations_df = pd.DataFrame(
+        {
+            "code": ["code0", "code1"],
+            "city": ["city0", "city1"],
+        },
+    )
+    station_def = DefaultStation(
+        stations_df=stations_df,
+    )
+    assert station_def.value == stations_df.index[0]
+
+
+def test_min_date_value_less_year() -> None:
+    """Test DefaultMinDate.value when max_date - min_date < 1 year."""
+    min_date = dt.date(2020, 1, 1)
+    max_date = dt.date(2020, 6, 1)
+    min_date_df = DefaultMinDate(
+        min_date=min_date,
+        max_date=max_date,
+    )
+    assert min_date_df.value == min_date
+
+
+@pytest.mark.parametrize(
+    ("min_date", "max_date", "expected"),
+    [
+        (dt.date(2020, 1, 1), dt.date(2022, 1, 1), dt.date(2021, 1, 1)),
+        (dt.date(2021, 1, 1), dt.date(2022, 1, 1), dt.date(2021, 1, 1)),
+        (dt.date(2020, 1, 1), dt.date(2021, 1, 1), dt.date(2020, 1, 2)),
+    ],
+)
+def test_min_date_value_more_year(
+    min_date: dt.date,
+    max_date: dt.date,
+    expected: dt.date,
+) -> None:
+    """Test DefaultMinDate.value when max_date - min_date >= 1 year.
+
+    Parameters
+    ----------
+    min_date : dt.date
+        Minimum data date.
+    max_date : dt.date
+        Maximum data date.
+    expected : dt.date
+        Expected value.
+    """
+    min_date_df = DefaultMinDate(
+        min_date=min_date,
+        max_date=max_date,
+    )
+    assert min_date_df.value == expected
+
+
+def test_max_date_value() -> None:
+    """Test DefaultMaxDate.value."""
+    min_date = dt.date(2020, 1, 1)
+    max_date = dt.date(2020, 6, 1)
+    max_date_df = DefaultMaxDate(
+        min_date=min_date,
+        max_date=max_date,
+    )
+    assert max_date_df.value == max_date
