@@ -1,5 +1,6 @@
 """Tools to compute defaults values for user inputs."""
 
+import datetime as dt
 from abc import ABC, abstractproperty
 from functools import cached_property
 from pathlib import Path
@@ -152,3 +153,55 @@ class DefaultStation(DefaultInput[int]):
     def value(self) -> int:
         """Value to use as default input."""
         return self.stations_index[0]
+
+
+class DefaultDate(DefaultInput[dt.date]):
+    """Default Input for date selection.
+
+    Parameters
+    ----------
+    min_date : dt.date
+        Data minimum date.
+    max_date : dt.date
+        Data maximum date.
+    """
+
+    def __init__(self, min_date: dt.date, max_date: dt.date) -> None:
+        self._min = min_date
+        self._max = max_date
+
+
+class DefaultMinDate(DefaultDate):
+    """Default Input for minimum date selection.
+
+    Parameters
+    ----------
+    min_date : dt.date
+        Data minimum date.
+    max_date : dt.date
+        Data maximum date.
+    """
+
+    @property
+    def value(self) -> dt.date:
+        """Value to use as default input."""
+        max_minus_year = self._max - dt.timedelta(days=365)
+
+        return max(self._min, max_minus_year)
+
+
+class DefaultMaxDate(DefaultDate):
+    """Default Input for maximum date selection.
+
+    Parameters
+    ----------
+    min_date : dt.date
+        Data minimum date.
+    max_date : dt.date
+        Data maximum date.
+    """
+
+    @property
+    def value(self) -> dt.date:
+        """Value to use as default input."""
+        return self._max
