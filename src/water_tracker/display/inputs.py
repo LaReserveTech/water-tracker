@@ -276,7 +276,7 @@ class PeriodInput:
         self._min_default = min_default
         self._max_default = max_default
 
-    def compute_min_start(
+    def compute_min_end(
         self,
         min_chosen_date: "DateWidgetReturn",
     ) -> dt.date:
@@ -326,7 +326,7 @@ class PeriodInput:
         max_input = DateInput(
             label=self.label_max,
             default_input=self._max_default,
-            min_value=self.compute_min_start(min_chosen),
+            min_value=self.compute_min_end(min_chosen),
             max_value=self._max,
             key="date_max_input",
         )
