@@ -1,10 +1,15 @@
 """Test for Inputs."""
 
+import datetime as dt
 from unittest.mock import Mock
 
 import pandas as pd
 import pytest
-from water_tracker.display.inputs import DepartmentInput, StationInput
+from water_tracker.display.inputs import (
+    DepartmentInput,
+    PeriodInput,
+    StationInput,
+)
 
 
 @pytest.fixture()
@@ -47,6 +52,23 @@ def station_input() -> StationInput:
     )
 
 
+@pytest.fixture()
+def period_input() -> PeriodInput:
+    """Create Period input object."""
+    min_def = Mock()
+    min_def.value = dt.date(2020, 1, 1)
+    max_def = Mock()
+    max_def.value = dt.date(2020, 12, 31)
+    return PeriodInput(
+        "min",
+        "max",
+        min_date=dt.date(2019, 1, 1),
+        max_date=dt.date(2021, 12, 31),
+        min_default=min_def,
+        max_default=max_def,
+    )
+
+
 def test_dep_options(dep_input: DepartmentInput) -> None:
     """Test DefaultDepartment.options.
 
@@ -84,3 +106,27 @@ def test_station_format(station_input: StationInput) -> None:
         Station Input.
     """
     assert station_input.format_func(0) == "code0 (city0)"
+
+
+def test_period_input_compute_min_date(period_input: PeriodInput) -> None:
+    """Test PeriodInput's compute_min_end method with date input.
+
+    Parameters
+    ----------
+    period_input : PeriodInput
+        Period Input.
+    """
+    chosen = dt.date(2020, 1, 1)
+    assert period_input.compute_min_end(chosen) == chosen
+
+
+def test_period_input_compute_min_none(period_input: PeriodInput) -> None:
+    """Test PeriodInput's compute_min_end method with non-date input.
+
+    Parameters
+    ----------
+    period_input : PeriodInput
+        Period Input.
+    """
+    chosen = None
+    assert period_input.compute_min_end(chosen) == dt.date(2019, 1, 1)
