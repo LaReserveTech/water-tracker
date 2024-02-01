@@ -19,6 +19,14 @@ Une fois cela fait, il suffit de copier le template du fichier .env avec la comm
 Puis d'y renseigner les informations de connexions, normalement disponibles depuis votre page profile :
 `https://cds.climate.copernicus.eu/user/`
 
+Installer cdsapi (pip install cdsapi) sur commandline
+
+Dans un jupyter notebook:
+
+import cdsapi as ct
+c = cdsapi.Client()
+c.retrieve(#information#)
+
 **ERA5 land**
 
 Les requêtes sont faites au dataset suivant : `https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=form`.
