@@ -6,7 +6,7 @@ zone_alerte_commune_url = (
 
 path_corres_commune_insee = "./data/correspondance-code-insee-code-postal.csv"
 
-dataset_id_for_year = {
+dataset_id = {
     2023: '782aac32-29c8-4b66-b231-ab4c3005f574',
     2022: '0fee8de1-c6de-4334-8daf-654549e53988',
     2021: 'c23fe783-763f-4669-a9b7-9d1d199fcfcd',
@@ -23,10 +23,14 @@ dataset_id_for_year = {
     2010: 'd6cb1826-6cc8-4709-85fd-433db23aa951'
 }
 
+pluviometrie_mois = pd.read_csv(
+    "./data/moyenne_pluviométrie_metropole_v7_15.csv")  # pluviométrie par métropole par mois pour les 365 jours précédents, à mettre à jour
+nappes_mois = pd.read_csv(
+    "./data/moyenne_nappes_metropole_v7_15.csv")  # nappes d'eau par métropole par mois pour les 365 jours précédents, à mettre à jour
 
 cl_month = RestrictionEau()
-# To Do add comments
-cl_month.process(2022, 2024, filter_per_month=True, path_corres_commune_insee=path_corres_commune_insee,
-                 dataset_id_for_year=dataset_id_for_year, zone_alerte_commune_url=zone_alerte_commune_url)
 
-cl_month.plot_only_restriction_data(2023)
+cl_month.process(filter_per_month=True, path_corres_commune_insee=path_corres_commune_insee,
+                 dataset_id=dataset_id, zone_alerte_commune_url=zone_alerte_commune_url)
+
+cl_month.plot_restriction_secheresse_data(pluviometrie_mois=pluviometrie_mois, nappes_mois=nappes_mois)
