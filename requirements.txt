@@ -1,8 +1,0 @@
-streamlit
-google
-pandas
-numpy
-pybase64
-seaborn
-matplotlib
-plotly
