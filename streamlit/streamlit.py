@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px 
 
 st.sidebar.title('Navigation')
-pages = [":rainbow: Sècheresse", "Autre indicateur", 'FAQ']
+pages = [":rainbow: Evolution de la sècheresse", "Impacts de la sècheresse", 'FAQ']
 page = st.sidebar.radio('Water Tracker', pages)
 
 ## Début du display
@@ -25,6 +25,8 @@ Nous disposons de 3 ressources en eau principales :
 
 Pour plus d’informations sur la sécheresse [rdv 
 ici](https://www.ecologie.gouv.fr/secheresse).''')
+
+if page == pages[1]:
 
 
 
