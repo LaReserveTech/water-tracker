@@ -27,7 +27,8 @@ Pour plus d’informations sur la sécheresse [rdv
 ici](https://www.ecologie.gouv.fr/secheresse).''')
 
 if page == pages[1]:
-    st.title('Les impacts de la sècheresse en 2023')
+    st.header('Les impacts de la sècheresse en 2023', divider='rainbow')
+    
 
 
 if page == pages[2]:
