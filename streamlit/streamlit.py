@@ -8,7 +8,7 @@ import plotly.express as px
 from essai_plot import plot_flow, plot_groundwater, plot_precipitations
 
 st.sidebar.title('Navigation')
-pages = ['Water Tracker', ":rainbow: Evolution de la sècheresse", "Impacts de la sècheresse", 'FAQ']
+pages = [":rainbow: Evolution de la sècheresse", "Impacts de la sècheresse", 'FAQ']
 page = st.sidebar.radio('Water Tracker', pages)
 
 
@@ -126,10 +126,6 @@ Nous disposons de 3 ressources en eau principales :
 Pour plus d’informations sur la sécheresse [rdv 
 ici](https://www.ecologie.gouv.fr/secheresse).''')
     
-
-
-if page == pages[1]:
-    st.title('Water Tracker')
     st.title('ÉVOLUTION DE LA SÈCHERESSE EN 2023')
 
     st.header(":umbrella_with_rain_drops:ÉVOLUTION DE LA PLUIE EN 2023", divider='rainbow')
@@ -148,7 +144,7 @@ if page == pages[1]:
 
     st.write('Comment lire le graphique : en novembre 2023, 35% des eaux de surfaces avaient un niveau très bas à modérément bas ; 10% avaient un niveau comparable aux normales de saison ; 55% avaient un niveau modérément haut à très haut.')
 
-    st.header('<aside>🪣 ÉVOLUTION DU TAUX DE REMPLISSAGE DES NAPPES PHRÉATIQUES EN 2023</aside>', allow_unsafe_html = True, divider='rainbow')
+    st.header(":bucket:ÉVOLUTION DU TAUX DE REMPLISSAGE DES NAPPES PHRÉATIQUES EN 2023', divider='rainbow'")
     st.markdown('Les nappes constituent une autre recharge d’eau cruciale pour alimenter nos besoins en eau toute l’année. En principe, elles se remplissent pendant les mois d’automne et d’hiver grâce à la pluie. Mais leur taux de remplissage peut être inférieur aux normales de saison s’il ne pleut pas assez et menacer nos stocks pour faire face aux moins plus chauds.')
 
     fig = plot_groundwater(df_nappes)
@@ -156,15 +152,15 @@ if page == pages[1]:
 
     st.write('Comment lire le graphique : en novembre 2023, 35% des nappes avaient un niveau très bas à modérément bas ; 10% avaient un niveau comparable aux normales de saison ; 55% avaient un niveau modérément haut à très haut.')
 
-if page == pages[2]:
+if page == pages[1]:
     st.title('Water Tracker')
     st.header('LES IMPACTS DE LA SÉCHERESSE EN 2023')  
     st.write('L’une des manières de voir l’impact de la sécheresse sur la biodiversité est de regarder l’évolution de la qualité des cours d’eau (en termes de caractéristiques bio-physiques et en termes de températures). La sécheresse augmente la concentration de polluants et la température des cours d’eau, ce qui peut durablement impacter les écosystèmes. Le taux de remplissage des nappes est le meilleur moyen de rendre compte de la sécheresses sur la qualité des cours d’eau car XXX')
     st.write('Comment lire le graphique : en octobre 2023, 85% des stations d’analyse rendaient compte d’une qualité des cours d’eau mauvaise ou médiocre. En même temps, 60% des nappes avaient un niveau en dessous des normales de saison.')
-    st.header(":star:LA SECHERESSE ET LES RESTRICTIONS D’EAU")
+    st.header('&#10024; LA SECHERESSE ET LES RESTRICTIONS D’EAU')
     st.write('Des restrictions préfectorales sont parfois mises en place lorsque nos ressources en eau sont en tension. Visitez [vigieau.gouv.fr](http://vigieau.gouv.fr) pour savoir si vous êtes concerné.e par une restriction d’eau aujourd’hui.')
 
-if page == pages[3]:
+if page == pages[2]:
     st.title('FAQ')
     
 
