@@ -161,7 +161,7 @@ if page == pages[2]:
     st.header('LES IMPACTS DE LA SÉCHERESSE EN 2023')  
     st.write('L’une des manières de voir l’impact de la sécheresse sur la biodiversité est de regarder l’évolution de la qualité des cours d’eau (en termes de caractéristiques bio-physiques et en termes de températures). La sécheresse augmente la concentration de polluants et la température des cours d’eau, ce qui peut durablement impacter les écosystèmes. Le taux de remplissage des nappes est le meilleur moyen de rendre compte de la sécheresses sur la qualité des cours d’eau car XXX')
     st.write('Comment lire le graphique : en octobre 2023, 85% des stations d’analyse rendaient compte d’une qualité des cours d’eau mauvaise ou médiocre. En même temps, 60% des nappes avaient un niveau en dessous des normales de saison.')
-    st.header(':star:LA SECHERESSE ET LES RESTRICTIONS D’EAU')
+    st.header(":star:LA SECHERESSE ET LES RESTRICTIONS D’EAU")
     st.write('Des restrictions préfectorales sont parfois mises en place lorsque nos ressources en eau sont en tension. Visitez [vigieau.gouv.fr](http://vigieau.gouv.fr) pour savoir si vous êtes concerné.e par une restriction d’eau aujourd’hui.')
 
 if page == pages[3]:
