@@ -5,14 +5,18 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import plotly.express as px 
-from essai_plot import plot_flow, plot_groundwater, plot_precipitations
 
 st.sidebar.title('Navigation')
 pages = [":rainbow: Evolution de la sècheresse", "Impacts de la sècheresse", 'FAQ']
 page = st.sidebar.radio('Water Tracker', pages)
 
+#data
+df_precipitations = pd.read_csv('data/pluviométrie_data.csv')
+df_flow = pd.read_csv('data/df_stations.csv')
+df_nappes = pd.read_csv('data/nappes_data.csv')
 
 #Plot1
+@st.cache_data
 def plot_flow(df):
 
     # Couleurs
@@ -44,6 +48,7 @@ def plot_flow(df):
 
 
 #Plot2
+@st.cache_data
 def plot_groundwater(df):
 
     # Couleurs
@@ -73,11 +78,12 @@ def plot_groundwater(df):
     fig.autofmt_xdate(rotation=45)
     return fig
 
-
+@st.cache_data
 def plot_precipitations(df):
     #Plot3
 
     # Couleurs
+    #J'aurais mis les couleurs dans l'autre sens
     colors = ["#da442c", "#f28f00", "#ffdd55", "#6cc35a", "#30aadd", "#1e73c3", "#286172"]
 
     # Tracé
@@ -104,18 +110,20 @@ def plot_precipitations(df):
     fig.autofmt_xdate(rotation=45)
     return fig
 
-df_precipitations = pd.read_csv('pluviométrie_data.csv')
-df_flow = pd.read_csv('df_stations.csv')
-df_nappes = pd.read_csv('nappes_data.csv')
-
 
 ## Début du display
 if page == pages[0]:
     st.title('Water Tracker')
+    
+# C'est quoi les conséquences de la sècheresse
+    
     st.header('Statistiques et visualisations des données sécheresse en France métropolitaine en 2023')
-    st.write('Water Tracker est un outil permettant de suivre l’évolution de la sécheresse et ses impacts, en France métropolitaine sur l’année 2023.')
+    st.markdown('<div style="text-align: justify;">Water Tracker est un outil permettant de suivre l’évolution de la sécheresse et ses impacts, en France métropolitaine sur l’année 2023.</div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align: justify;"><br></br></div>', unsafe_allow_html=True)
 
-    st.title('ÉVOLUTION DE LA SÉCHERESSE EN 2023')
+#Il faudrait une photo, une image, un divider ou changer le display avec le titre ou la page (ou alors enlever Water Tracker et ne mettre qu'un titre en capitales)
+
+    st.header('Évolution de la sècheresse en 2023')
     st.markdown('''Un épisode de sécheresse peut survenir si nos ressources en eau sont en tension ou ont été en tension pendant une trop longue période. 
 Nous disposons de 3 ressources en eau principales :
 
@@ -126,37 +134,46 @@ Nous disposons de 3 ressources en eau principales :
 Pour plus d’informations sur la sécheresse [rdv 
 ici](https://www.ecologie.gouv.fr/secheresse).''')
     
-    st.title('ÉVOLUTION DE LA SÈCHERESSE EN 2023')
-
-    st.header(":umbrella_with_rain_drops:ÉVOLUTION DE LA PLUIE EN 2023", divider='rainbow')
-    st.write('La pluie apporte une grande quantité d’eau sur le territoire. Deux-tiers des volumes précipités s’évaporent et le reste vient alimenter la végétation et nos réserves d’eau (nappes et eaux de surface). Des précipitations insuffisantes ont donc un impact important sur la résilience du territoire.')
+    st.markdown('<div style="text-align: justify;"><br></br></div>', unsafe_allow_html=True)
+    
+    st.header(":umbrella_with_rain_drops: ÉVOLUTION DE LA PLUIE EN 2023", divider='rainbow')
+    st.markdown('<div style="text-align: justify;">La pluie apporte une grande quantité d’eau sur le territoire. Deux-tiers des volumes précipités s’évaporent et le reste vient alimenter la végétation et nos réserves d’eau (nappes et eaux de surface). Des précipitations insuffisantes ont donc un impact important sur la résilience du territoire. <br></br></div>', unsafe_allow_html=True)
     
     fig = plot_precipitations(df_precipitations)
     st.pyplot(fig)
 
-    st.write("Comment lire le graphique : en novembre 2023, 35% stations de relevé indiquaient un niveau de précipitation très bas à modérément bas ; 10% indiquaient un niveau comparable aux normales de saison ; 55% indiquaient un niveau modérément haut à très haut.")
+    st.markdown('<div style="text-align: justify;">Comment lire le graphique:<br></br> En novembre 2023, 35% des stations de relevé indiquaient un niveau de précipitation très bas à modérément bas; 10% indiquaient un niveau comparable aux normales de saison; 55% indiquaient un niveau modérément haut à très haut.<br></br><br></br></div>', unsafe_allow_html=True)
+
+#Ca a quoi comme impact ? Et surtout c'est quoi niveau de sècheresse ? S'agit-il des précipitations ou d'un indicateur de précipitations
 
     st.header(':sailboat:ÉVOLUTION DU TAUX DE REMPLISSAGE DES EAUX DE SURFACE EN 2023', divider='rainbow')
-    st.markdown('Les eaux de surface (fleuves, rivières, lac) constituent la grande majorité de nos réserves en eau (plus de 80%). On vient régulièrement y puiser pour alimenter les villes et les industries. Elles sont alimentées principalement par la pluie et les nappes.')
-    
+    st.markdown('<div style="text-align: justify;">Les eaux de surface (fleuves, rivières, lacs) constituent la grande majorité de nos réserves en eau (plus de 80%). On vient régulièrement y puiser pour alimenter les villes et les industries. Elles sont alimentées principalement par la pluie et les nappes.<br></br></div>', unsafe_allow_html= True)
+
     fig = plot_flow(df_flow)
     st.pyplot(fig)
 
-    st.write('Comment lire le graphique : en novembre 2023, 35% des eaux de surfaces avaient un niveau très bas à modérément bas ; 10% avaient un niveau comparable aux normales de saison ; 55% avaient un niveau modérément haut à très haut.')
+    # J'aurais mis les couleurs dans l'autre sens, c'est le débit de quoi ? 
 
-    st.header(":bucket:ÉVOLUTION DU TAUX DE REMPLISSAGE DES NAPPES PHRÉATIQUES EN 2023', divider='rainbow'")
-    st.markdown('Les nappes constituent une autre recharge d’eau cruciale pour alimenter nos besoins en eau toute l’année. En principe, elles se remplissent pendant les mois d’automne et d’hiver grâce à la pluie. Mais leur taux de remplissage peut être inférieur aux normales de saison s’il ne pleut pas assez et menacer nos stocks pour faire face aux moins plus chauds.')
+    st.markdown('<div style="text-align: justify;">Comment lire le graphique:<br></br> En novembre 2023, 35% des eaux de surfaces avaient un niveau très bas à modérément bas; 10% avaient un niveau comparable aux normales de saison; 55% avaient un niveau modérément haut à très haut.<br></br><br></br></div>', unsafe_allow_html=True)
+
+    st.header(":bucket: ÉVOLUTION DU TAUX DE REMPLISSAGE DES NAPPES PHRÉATIQUES EN 2023", divider='rainbow')
+    st.markdown('<div style="text-align: justify;">Les nappes constituent une autre recharge d’eau cruciale pour alimenter nos besoins en eau toute l’année. En principe, elles se remplissent pendant les mois d’automne et d’hiver grâce à la pluie. Mais leur taux de remplissage peut être inférieur aux normales de saison s’il ne pleut pas assez et menacer nos stocks pour faire face aux mois plus chauds.<br></br></div>', unsafe_allow_html=True)
 
     fig = plot_groundwater(df_nappes)
     st.pyplot(fig)
 
-    st.write('Comment lire le graphique : en novembre 2023, 35% des nappes avaient un niveau très bas à modérément bas ; 10% avaient un niveau comparable aux normales de saison ; 55% avaient un niveau modérément haut à très haut.')
+    st.markdown('<div style="text-align: justify;">Comment lire le graphique:<br></br> En novembre 2023, 35% des nappes avaient un niveau très bas à modérément bas; 10% avaient un niveau comparable aux normales de saison; 55% avaient un niveau modérément haut à très haut.</div>', unsafe_allow_html=True)
+
+#Il aut vérifier les chiffres
 
 if page == pages[1]:
     st.title('Water Tracker')
     st.header('LES IMPACTS DE LA SÉCHERESSE EN 2023')  
-    st.write('L’une des manières de voir l’impact de la sécheresse sur la biodiversité est de regarder l’évolution de la qualité des cours d’eau (en termes de caractéristiques bio-physiques et en termes de températures). La sécheresse augmente la concentration de polluants et la température des cours d’eau, ce qui peut durablement impacter les écosystèmes. Le taux de remplissage des nappes est le meilleur moyen de rendre compte de la sécheresses sur la qualité des cours d’eau car XXX')
-    st.write('Comment lire le graphique : en octobre 2023, 85% des stations d’analyse rendaient compte d’une qualité des cours d’eau mauvaise ou médiocre. En même temps, 60% des nappes avaient un niveau en dessous des normales de saison.')
+    st.write('L’une des manières de voir l’impact de la sécheresse sur la biodiversité est de regarder l’évolution de la qualité des cours d’eau (en termes de caractéristiques bio-physiques et en termes de températures). La sécheresse augmente la concentration de polluants et la température des cours d’eau, ce qui peut durablement impacter les écosystèmes. Le taux de remplissage des nappes est le meilleur moyen de rendre compte de la sécheresse sur la qualité des cours d’eau car XXX')
+
+#Remplacer XXX et qu'est-ce que ça a comme impact quand on passe en dessous de tel ou tel pourcentage, pour l'écosystème, pour l'approvisionnement, etc.
+
+    st.markdown('<div style="text-align: justify;">Comment lire le graphique:<br></br> En octobre 2023, 85% des stations d’analyse rendaient compte d’une qualité des cours d’eau mauvaise ou médiocre. En même temps, 60% des nappes avaient un niveau en dessous des normales de saison.<br></br></div>', unsafe_allow_html=True)
     st.header('&#10024; LA SECHERESSE ET LES RESTRICTIONS D’EAU')
     st.write('Des restrictions préfectorales sont parfois mises en place lorsque nos ressources en eau sont en tension. Visitez [vigieau.gouv.fr](http://vigieau.gouv.fr) pour savoir si vous êtes concerné.e par une restriction d’eau aujourd’hui.')
 
