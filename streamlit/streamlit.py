@@ -114,7 +114,7 @@ def plot_precipitations(df):
 ## Début du display
 if page == pages[0]:
     st.title('Water Tracker')
-    
+
 # C'est quoi les conséquences de la sècheresse
     
     st.header('Statistiques et visualisations des données sécheresse en France métropolitaine en 2023')
@@ -144,7 +144,7 @@ ici](https://www.ecologie.gouv.fr/secheresse).''')
 
     st.markdown('<div style="text-align: justify;">Comment lire le graphique:<br></br> En novembre 2023, 35% des stations de relevé indiquaient un niveau de précipitation très bas à modérément bas; 10% indiquaient un niveau comparable aux normales de saison; 55% indiquaient un niveau modérément haut à très haut.<br></br><br></br></div>', unsafe_allow_html=True)
 
-#Ca a quoi comme impact ? Et surtout c'est quoi niveau de sècheresse ? S'agit-il des précipitations ou d'un indicateur de précipitations
+#Ca a quoi comme impact ? Et surtout c'est quoi niveau de sècheresse ? S'agit-il des précipitations ou d'un indicateur de précipitations / commentaires sur novembre et décembre sur tous les graphes
 
     st.header(':sailboat:ÉVOLUTION DU TAUX DE REMPLISSAGE DES EAUX DE SURFACE EN 2023', divider='rainbow')
     st.markdown('<div style="text-align: justify;">Les eaux de surface (fleuves, rivières, lacs) constituent la grande majorité de nos réserves en eau (plus de 80%). On vient régulièrement y puiser pour alimenter les villes et les industries. Elles sont alimentées principalement par la pluie et les nappes.<br></br></div>', unsafe_allow_html= True)
